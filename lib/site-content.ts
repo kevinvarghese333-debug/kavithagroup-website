@@ -53,11 +53,11 @@ export type Job = {
 };
 
 export const defaultContent: SiteContent = {
-  heroEyebrow: "A Kerala story of enterprise",
+  heroEyebrow: "Kavitha Group",
   heroTitle: "Built on trust.",
-  heroAccent: "Built to endure.",
+  heroAccent: "",
   heroBody:
-    "From a single room and an instinct for opportunity to a diversified group serving communities across Kerala.",
+    "From a single room and an instinct for opportunity to a diversified group serving generations of families and enterprises.",
   storyTitle: "A lifetime of enterprise, shaped by people.",
   storyBody:
     "Kavitha Group traces its roots to K. Varghese's earliest ventures, begun from a single room at home. What started with determination and a silver trade grew into a family of enterprises united by trust, accessibility and service.",

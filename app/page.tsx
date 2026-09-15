@@ -32,7 +32,10 @@ export default async function Home() {
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-copy reveal-up">
           <p className="eyebrow light">{content.heroEyebrow}</p>
-          <h1 id="hero-title">{content.heroTitle}<br /><span>{content.heroAccent}</span></h1>
+          <h1 id="hero-title">
+            {content.heroTitle}
+            {content.heroAccent ? <><br /><span>{content.heroAccent}</span></> : null}
+          </h1>
           <p className="hero-intro">{content.heroBody}</p>
           <div className="hero-actions">
             <Link href="/businesses" className="button button-gold">

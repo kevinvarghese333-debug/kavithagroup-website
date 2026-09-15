@@ -16,12 +16,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://kavithagroup.in"),
   title: "Kavitha Group | Built on Trust",
   description:
-    "Kavitha Group is a diversified Kerala-based enterprise spanning finance, jewellery, savings, fashion, events and leisure.",
+    "Kavitha Group is a diversified enterprise spanning finance, jewellery, savings, fashion, events and leisure.",
   openGraph: {
     title: "Kavitha Group | Built on Trust",
     description: "One group. Many enterprises. A single promise—built on trust.",
     type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Kavitha Group — Built on trust. Built to endure." }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Kavitha Group — Built on Trust" }],
   },
   twitter: {
     card: "summary_large_image",
