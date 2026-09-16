@@ -14,7 +14,14 @@ function adminEmails() {
     .filter(Boolean);
 }
 
+export function isAdminAuthConfigured() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY,
+  );
+}
+
 export async function getAdminIdentity(): Promise<AdminIdentity | null> {
+  if (!isAdminAuthConfigured()) return null;
   const { userId } = await auth();
   if (!userId) return null;
 
