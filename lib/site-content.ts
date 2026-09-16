@@ -93,7 +93,7 @@ export const defaultLeaders: Leader[] = [
     name: "Kevin Varghese",
     role: "Director",
     bio: "Director profile placeholder. Add the approved biography, focus areas and portrait from the admin panel.",
-    imageKey: null,
+    imageKey: "/assets/leadership/kevin-varghese.jpg",
     position: 3,
     published: true,
   },
