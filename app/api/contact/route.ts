@@ -1,5 +1,6 @@
-import { env } from "cloudflare:workers";
 import { NextResponse } from "next/server";
+import { getDb } from "@/db";
+import { inquiries } from "@/db/schema";
 
 function text(value: unknown, max: number) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -17,9 +18,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please complete the required fields" }, { status: 400 });
   }
   try {
-    await env.DB.prepare(
-      "INSERT INTO inquiries (id, name, email, phone, subject, message, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ).bind(crypto.randomUUID(), name, email, phone || null, subject, message, "new", Date.now()).run();
+    await getDb().insert(inquiries).values({
+      id: crypto.randomUUID(),
+      name,
+      email,
+      phone: phone || null,
+      subject,
+      message,
+      status: "new",
+      createdAt: Date.now(),
+    });
     return NextResponse.json({ status: "received" }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Enquiry service unavailable" }, { status: 503 });

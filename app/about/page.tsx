@@ -4,6 +4,8 @@ import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { SiteFooter } from "@/components/site-footer";
 import { getLeaders, getSiteContent } from "@/lib/site-content";
 
+export const dynamic = "force-dynamic";
+
 const values = [
   ["Trust", "Every relationship begins with honesty, transparency and the confidence to keep our word."],
   ["Enterprise", "We stay alert to practical opportunities that create lasting value for customers and communities."],

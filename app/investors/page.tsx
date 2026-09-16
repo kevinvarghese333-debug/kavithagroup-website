@@ -3,6 +3,8 @@ import { PageHero } from "@/components/page-hero";
 import { SiteFooter } from "@/components/site-footer";
 import { getDocuments, getSiteContent } from "@/lib/site-content";
 
+export const dynamic = "force-dynamic";
+
 const labels: Record<string, string> = { annual: "Annual Reports", agm: "AGM Reports", policy: "Company Policies", disclosure: "Disclosures" };
 
 export const metadata = { title: "Investor Corner | Kavitha Group" };
@@ -22,7 +24,7 @@ export default async function InvestorsPage() {
               <div><p className="eyebrow">{labels[category]}</p><span>{items.length} {items.length === 1 ? "document" : "documents"}</span></div>
               <div className="document-list">
                 {items.length ? items.map((document) => (
-                  <a href={`/media/${document.fileKey}`} key={document.id} target="_blank" rel="noreferrer">
+                  <a href={document.fileKey} key={document.id} target="_blank" rel="noreferrer">
                     <FileText size={20} /><span><strong>{document.title}</strong><small>{document.year} · {(document.size / 1_000_000).toFixed(1)} MB</small></span><Download size={18} />
                   </a>
                 )) : <div className="empty-library"><FileText size={21} /><span>Documents will appear here when published.</span></div>}

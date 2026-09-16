@@ -1,4 +1,6 @@
-import { env } from "cloudflare:workers";
+import { asc, desc, eq } from "drizzle-orm";
+import { getDb } from "@/db";
+import { businesses, contentBlocks, documents, jobs, leaders } from "@/db/schema";
 
 export type SiteContent = {
   heroEyebrow: string;
@@ -62,7 +64,7 @@ export const defaultContent: SiteContent = {
   storyBody:
     "Kavitha Group traces its roots to K. Varghese's earliest ventures, begun from a single room at home. What started with determination and a silver trade grew into a family of enterprises united by trust, accessibility and service.",
   contactPhone: "+91 75919 05656",
-  contactEmail: "admin@kavithagroup.in",
+  contactEmail: "it@kavithagroup.in",
   contactAddress:
     "Kavitha Building, Library Road, Municipal Junction, North Paravur, Ernakulam, Kerala 683513",
 };
@@ -207,16 +209,16 @@ export const defaultBusinesses: Business[] = [
 
 function mediaUrl(key: string | null): string | null {
   if (!key) return null;
-  return key.startsWith("/") || key.startsWith("http") ? key : `/media/${key}`;
+  return key.startsWith("/") || key.startsWith("http") ? key : null;
 }
 
 export async function getSiteContent(): Promise<SiteContent> {
   try {
-    const row = await env.DB.prepare(
-      "SELECT value FROM content_blocks WHERE key = ? LIMIT 1",
-    )
-      .bind("site_content")
-      .first<{ value: string }>();
+    const [row] = await getDb()
+      .select({ value: contentBlocks.value })
+      .from(contentBlocks)
+      .where(eq(contentBlocks.key, "site_content"))
+      .limit(1);
     if (!row?.value) return defaultContent;
     return { ...defaultContent, ...(JSON.parse(row.value) as Partial<SiteContent>) };
   } catch {
@@ -226,19 +228,19 @@ export async function getSiteContent(): Promise<SiteContent> {
 
 export async function getLeaders(includeDrafts = false): Promise<Leader[]> {
   try {
-    const query = includeDrafts
-      ? "SELECT * FROM leaders ORDER BY position ASC"
-      : "SELECT * FROM leaders WHERE published = 1 ORDER BY position ASC";
-    const result = await env.DB.prepare(query).all<Record<string, unknown>>();
-    if (!result.results.length) return defaultLeaders;
-    return result.results.map((row) => ({
-      id: String(row.id),
-      name: String(row.name),
-      role: String(row.role),
-      bio: String(row.bio),
-      imageKey: mediaUrl(row.image_key ? String(row.image_key) : null),
-      position: Number(row.position),
-      published: Boolean(row.published),
+    const db = getDb();
+    const rows = includeDrafts
+      ? await db.select().from(leaders).orderBy(asc(leaders.position))
+      : await db.select().from(leaders).where(eq(leaders.published, true)).orderBy(asc(leaders.position));
+    if (!rows.length) return defaultLeaders;
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      role: row.role,
+      bio: row.bio,
+      imageKey: mediaUrl(row.imageKey),
+      position: row.position,
+      published: row.published,
     }));
   } catch {
     return defaultLeaders;
@@ -247,21 +249,21 @@ export async function getLeaders(includeDrafts = false): Promise<Leader[]> {
 
 export async function getBusinesses(includeDrafts = false): Promise<Business[]> {
   try {
-    const query = includeDrafts
-      ? "SELECT * FROM businesses ORDER BY position ASC"
-      : "SELECT * FROM businesses WHERE published = 1 ORDER BY position ASC";
-    const result = await env.DB.prepare(query).all<Record<string, unknown>>();
-    if (!result.results.length) return defaultBusinesses;
-    return result.results.map((row) => ({
-      id: String(row.id),
-      name: String(row.name),
-      category: String(row.category),
-      summary: String(row.summary),
-      location: row.location ? String(row.location) : null,
-      imageKey: mediaUrl(row.image_key ? String(row.image_key) : null),
-      websiteUrl: row.website_url ? String(row.website_url) : null,
-      position: Number(row.position),
-      published: Boolean(row.published),
+    const db = getDb();
+    const rows = includeDrafts
+      ? await db.select().from(businesses).orderBy(asc(businesses.position))
+      : await db.select().from(businesses).where(eq(businesses.published, true)).orderBy(asc(businesses.position));
+    if (!rows.length) return defaultBusinesses;
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      summary: row.summary,
+      location: row.location,
+      imageKey: mediaUrl(row.imageKey),
+      websiteUrl: row.websiteUrl,
+      position: row.position,
+      published: row.published,
     }));
   } catch {
     return defaultBusinesses;
@@ -270,17 +272,27 @@ export async function getBusinesses(includeDrafts = false): Promise<Business[]> 
 
 export async function getDocuments(): Promise<PublicDocument[]> {
   try {
-    const result = await env.DB.prepare(
-      "SELECT id, title, category, year, file_key, file_name, size FROM documents WHERE published = 1 ORDER BY year DESC, created_at DESC",
-    ).all<Record<string, unknown>>();
-    return result.results.map((row) => ({
-      id: String(row.id),
-      title: String(row.title),
-      category: String(row.category),
-      year: Number(row.year),
-      fileKey: String(row.file_key),
-      fileName: String(row.file_name),
-      size: Number(row.size),
+    const rows = await getDb()
+      .select({
+        id: documents.id,
+        title: documents.title,
+        category: documents.category,
+        year: documents.year,
+        fileKey: documents.fileKey,
+        fileName: documents.fileName,
+        size: documents.size,
+      })
+      .from(documents)
+      .where(eq(documents.published, true))
+      .orderBy(desc(documents.year), desc(documents.createdAt));
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      category: row.category,
+      year: row.year,
+      fileKey: row.fileKey,
+      fileName: row.fileName,
+      size: row.size,
     }));
   } catch {
     return [];
@@ -289,15 +301,23 @@ export async function getDocuments(): Promise<PublicDocument[]> {
 
 export async function getJobs(): Promise<Job[]> {
   try {
-    const result = await env.DB.prepare(
-      "SELECT id, title, location, type, description FROM jobs WHERE published = 1 ORDER BY created_at DESC",
-    ).all<Record<string, unknown>>();
-    return result.results.map((row) => ({
-      id: String(row.id),
-      title: String(row.title),
-      location: String(row.location),
-      type: String(row.type),
-      description: String(row.description),
+    const rows = await getDb()
+      .select({
+        id: jobs.id,
+        title: jobs.title,
+        location: jobs.location,
+        type: jobs.type,
+        description: jobs.description,
+      })
+      .from(jobs)
+      .where(eq(jobs.published, true))
+      .orderBy(desc(jobs.createdAt));
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      location: row.location,
+      type: row.type,
+      description: row.description,
     }));
   } catch {
     return [];

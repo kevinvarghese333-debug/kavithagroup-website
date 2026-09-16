@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 type Enquiry = { name: string; email: string; phone: string; subject: string; message: string };
@@ -63,7 +63,7 @@ export function ContactForm() {
     return () => lifecycle.abort();
   }, []);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     try { await submit(form); } catch { /* status is shown below */ }
   }

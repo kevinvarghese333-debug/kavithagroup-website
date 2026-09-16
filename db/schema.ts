@@ -1,13 +1,13 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { bigint, boolean, index, integer, pgTable, text } from "drizzle-orm/pg-core";
 
-export const contentBlocks = sqliteTable("content_blocks", {
+export const contentBlocks = pgTable("content_blocks", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
-  updatedAt: integer("updated_at").notNull(),
+  updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
   updatedBy: text("updated_by"),
 });
 
-export const leaders = sqliteTable(
+export const leaders = pgTable(
   "leaders",
   {
     id: text("id").primaryKey(),
@@ -16,13 +16,13 @@ export const leaders = sqliteTable(
     bio: text("bio").notNull(),
     imageKey: text("image_key"),
     position: integer("position").notNull().default(0),
-    published: integer("published", { mode: "boolean" }).notNull().default(true),
-    updatedAt: integer("updated_at").notNull(),
+    published: boolean("published").notNull().default(true),
+    updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
   },
   (table) => [index("idx_leaders_position").on(table.position)],
 );
 
-export const businesses = sqliteTable(
+export const businesses = pgTable(
   "businesses",
   {
     id: text("id").primaryKey(),
@@ -33,13 +33,13 @@ export const businesses = sqliteTable(
     imageKey: text("image_key"),
     websiteUrl: text("website_url"),
     position: integer("position").notNull().default(0),
-    published: integer("published", { mode: "boolean" }).notNull().default(true),
-    updatedAt: integer("updated_at").notNull(),
+    published: boolean("published").notNull().default(true),
+    updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
   },
   (table) => [index("idx_businesses_position").on(table.position)],
 );
 
-export const documents = sqliteTable(
+export const documents = pgTable(
   "documents",
   {
     id: text("id").primaryKey(),
@@ -50,14 +50,14 @@ export const documents = sqliteTable(
     fileName: text("file_name").notNull(),
     mimeType: text("mime_type").notNull(),
     size: integer("size").notNull(),
-    published: integer("published", { mode: "boolean" }).notNull().default(true),
-    createdAt: integer("created_at").notNull(),
-    updatedAt: integer("updated_at").notNull(),
+    published: boolean("published").notNull().default(true),
+    createdAt: bigint("created_at", { mode: "number" }).notNull(),
+    updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
   },
   (table) => [index("idx_documents_category_published").on(table.category, table.published)],
 );
 
-export const jobs = sqliteTable(
+export const jobs = pgTable(
   "jobs",
   {
     id: text("id").primaryKey(),
@@ -65,14 +65,14 @@ export const jobs = sqliteTable(
     location: text("location").notNull(),
     type: text("type").notNull(),
     description: text("description").notNull(),
-    published: integer("published", { mode: "boolean" }).notNull().default(true),
-    createdAt: integer("created_at").notNull(),
-    updatedAt: integer("updated_at").notNull(),
+    published: boolean("published").notNull().default(true),
+    createdAt: bigint("created_at", { mode: "number" }).notNull(),
+    updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
   },
   (table) => [index("idx_jobs_published").on(table.published)],
 );
 
-export const inquiries = sqliteTable(
+export const inquiries = pgTable(
   "inquiries",
   {
     id: text("id").primaryKey(),
@@ -82,7 +82,7 @@ export const inquiries = sqliteTable(
     subject: text("subject").notNull(),
     message: text("message").notNull(),
     status: text("status").notNull().default("new"),
-    createdAt: integer("created_at").notNull(),
+    createdAt: bigint("created_at", { mode: "number" }).notNull(),
   },
   (table) => [index("idx_inquiries_status_created").on(table.status, table.createdAt)],
 );

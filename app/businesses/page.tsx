@@ -4,6 +4,8 @@ import { PageHero } from "@/components/page-hero";
 import { SiteFooter } from "@/components/site-footer";
 import { getBusinesses, getSiteContent } from "@/lib/site-content";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Our Businesses | Kavitha Group" };
 
 export default async function BusinessesPage() {

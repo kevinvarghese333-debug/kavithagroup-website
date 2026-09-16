@@ -570,13 +570,19 @@ a { color: inherit; text-decoration: none; }
 .footer-bottom { display: flex; justify-content: space-between; padding-top: 25px; border-top: 1px solid rgba(255,255,255,.1); color: rgba(255,255,255,.34); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 
 /* Admin */
+.auth-shell { display: grid; min-height: 100vh; grid-template-columns: minmax(280px, .8fr) minmax(360px, 1fr); align-items: center; gap: clamp(40px,8vw,120px); padding: clamp(30px,7vw,100px); background: linear-gradient(135deg, #3f0812 0%, var(--burgundy) 55%, #23060b 100%); }
+.auth-brand { display: grid; gap: 22px; color: rgba(255,255,255,.68); font-family: var(--font-playfair); font-size: clamp(20px,2vw,30px); }
+.auth-brand img { width: min(280px, 70vw); height: auto; filter: brightness(0) invert(1); }
+.auth-brand p { max-width: 340px; margin: 0; }
+.auth-shell > :last-child { justify-self: center; }
 .admin-shell { min-height: 100vh; background: #f4f0ea; color: var(--ink); }
 .admin-topbar { position: sticky; z-index: 20; top: 0; display: flex; height: 70px; align-items: center; justify-content: space-between; padding: 0 28px; border-bottom: 1px solid var(--border); background: rgba(255,253,249,.94); backdrop-filter: blur(16px); }
 .admin-brand { display: flex; align-items: center; gap: 9px; color: var(--maroon); font: 750 15px var(--font-manrope); }
 .admin-brand img { width: 29px; height: auto; }
 .admin-brand small { padding: 4px 7px; border-radius: 5px; background: #efe2d5; color: var(--maroon); font-size: 8px; letter-spacing: .1em; text-transform: uppercase; }
 .admin-topbar > div { display: flex; align-items: center; gap: 18px; color: #746863; font-size: 12px; }
-.admin-topbar a { display: inline-flex; align-items: center; gap: 5px; }
+.admin-topbar a, .admin-topbar button { display: inline-flex; align-items: center; gap: 5px; }
+.admin-topbar button { border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; }
 .admin-notice { position: fixed; z-index: 30; top: 82px; right: 22px; display: flex; align-items: center; gap: 18px; padding: 13px 17px; border-radius: 10px; background: var(--ink); color: white; box-shadow: 0 15px 45px rgba(28,20,16,.2); font-size: 13px; }
 .admin-notice button { border: 0; background: none; color: white; cursor: pointer; }
 .admin-tabs { display: grid !important; grid-template-columns: 230px 1fr; gap: 0 !important; align-items: start; }
@@ -607,7 +613,7 @@ a { color: inherit; text-decoration: none; }
 .record-fields { display: grid; gap: 18px; }
 .upload-control { display: inline-flex !important; width: max-content; align-items: center; grid-auto-flow: column; gap: 8px !important; padding: 9px 13px; border: 1px solid var(--border); border-radius: 8px; color: var(--maroon) !important; cursor: pointer; }
 .upload-control input, .document-drop input { display: none; }
-.admin-avatar { display: grid; width: 56px; height: 68px; overflow: hidden; place-items: center; border-radius: 10px; background: var(--burgundy); color: var(--light-gold); font: 700 17px var(--font-manrope); }
+.admin-avatar { position: relative; display: grid; width: 56px; height: 68px; overflow: hidden; place-items: center; border-radius: 10px; background: var(--burgundy); color: var(--light-gold); font: 700 17px var(--font-manrope); }
 .admin-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .document-drop { display: grid !important; min-height: 220px; place-items: center; align-content: center; gap: 8px !important; border: 1.5px dashed rgba(107,31,42,.3); border-radius: 16px; background: rgba(255,255,255,.58); color: var(--maroon) !important; cursor: pointer; }
 .document-drop span { color: #8d817a; font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; }
@@ -643,6 +649,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 800px) {
+  .auth-shell { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .auth-brand { justify-items: center; }
   .site-header { grid-template-columns: 1fr auto; }
   .site-header .nav-cta, .desktop-nav { display: none; }
   .mobile-menu { display: block; }

@@ -3,6 +3,8 @@ import { PageHero } from "@/components/page-hero";
 import { SiteFooter } from "@/components/site-footer";
 import { getSiteContent } from "@/lib/site-content";
 
+export const dynamic = "force-dynamic";
+
 const services = [
   [Gem, "Gold Loan", "Unlock the value of gold with a clear, guided process."],
   [Home, "Property Loan", "Finance shaped around property-backed requirements."],

@@ -1,6 +1,9 @@
 "use client";
 
 import { ChangeEvent, useEffect, useState } from "react";
+import { SignOutButton } from "@clerk/nextjs";
+import { upload } from "@vercel/blob/client";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, BriefcaseBusiness, Building2, FileText, Inbox, LayoutDashboard, Loader2, LogOut, Plus, Save, Trash2, Upload, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,9 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Business, Leader, SiteContent } from "@/lib/site-content";
 
-type AdminDocument = { id: string; title: string; category: string; year: number; file_name: string; file_key: string; size: number; published: number };
-type AdminJob = { id: string; title: string; location: string; type: string; description: string; published: number; created_at?: number };
-type Inquiry = { id: string; name: string; email: string; phone?: string; subject: string; message: string; status: string; created_at: number };
+type AdminDocument = { id: string; title: string; category: string; year: number; fileName: string; fileKey: string; size: number; published: boolean };
+type AdminJob = { id: string; title: string; location: string; type: string; description: string; published: boolean; createdAt?: number };
+type Inquiry = { id: string; name: string; email: string; phone?: string | null; subject: string; message: string; status: string; createdAt: number };
 type AdminState = { content: SiteContent; leaders: Leader[]; businesses: Business[]; documents: AdminDocument[]; jobs: AdminJob[]; inquiries: Inquiry[] };
 
 const navItems = [
@@ -46,10 +49,15 @@ export function AdminDashboard({ userEmail }: { userEmail: string }) {
   }
 
   async function uploadFile(file: File, kind: "image" | "document") {
-    const body = new FormData(); body.set("file", file); body.set("kind", kind);
-    const response = await fetch("/api/admin/upload", { method: "POST", body });
-    if (!response.ok) throw new Error("Upload failed");
-    return response.json() as Promise<{ key: string; url: string; fileName: string; mimeType: string; size: number }>;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(-120);
+    const folder = kind === "document" ? "documents" : "images";
+    const blob = await upload(`${folder}/${crypto.randomUUID()}-${safeName}`, file, {
+      access: "public",
+      handleUploadUrl: "/api/admin/upload",
+      clientPayload: JSON.stringify({ kind }),
+      multipart: file.size > 5_000_000,
+    });
+    return { key: blob.url, url: blob.url, fileName: file.name, mimeType: file.type, size: file.size };
   }
 
   async function uploadLeaderImage(index: number, event: ChangeEvent<HTMLInputElement>) {
@@ -98,8 +106,8 @@ export function AdminDashboard({ userEmail }: { userEmail: string }) {
   return (
     <main className="admin-shell">
       <header className="admin-topbar">
-        <Link href="/" className="admin-brand"><img src="/assets/kavitha-mark.png" alt="" /><span>Kavitha Group</span><small>Admin</small></Link>
-        <div><span>{userEmail}</span><Link href="/" target="_blank">View site <ArrowUpRight size={14} /></Link><a href="/signout-with-chatgpt?return_to=/"><LogOut size={14} /> Sign out</a></div>
+        <Link href="/" className="admin-brand"><Image src="/assets/kavitha-mark.png" alt="" width={29} height={26} /><span>Kavitha Group</span><small>Admin</small></Link>
+        <div><span>{userEmail}</span><Link href="/" target="_blank">View site <ArrowUpRight size={14} /></Link><SignOutButton redirectUrl="/"><button type="button"><LogOut size={14} /> Sign out</button></SignOutButton></div>
       </header>
 
       {notice && <div className="admin-notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss">×</button></div>}
@@ -116,7 +124,7 @@ export function AdminDashboard({ userEmail }: { userEmail: string }) {
             <div className="admin-stat-grid">
               <AdminStat value={data.businesses.length} label="Businesses" /><AdminStat value={data.leaders.length} label="Leaders" /><AdminStat value={data.documents.length} label="Documents" /><AdminStat value={data.inquiries.filter((item) => item.status === "new").length} label="New enquiries" />
             </div>
-            <div className="admin-guide"><h3>Content workflow</h3><ol><li>Replace placeholder leadership portraits and bios.</li><li>Upload AGM reports, annual reports and company policies.</li><li>Review business descriptions and links.</li><li>Add the live admin email before publishing.</li></ol></div>
+            <div className="admin-guide"><h3>Content workflow</h3><ol><li>Replace placeholder leadership portraits and bios.</li><li>Upload AGM reports, annual reports and company policies.</li><li>Review business descriptions and links.</li><li>Review the admin allowlist in the Vercel environment settings.</li></ol></div>
           </TabsContent>
 
           <TabsContent value="content">
@@ -152,7 +160,7 @@ export function AdminDashboard({ userEmail }: { userEmail: string }) {
             <AdminHeading eyebrow="People" title="Leadership profiles" body="The four initial profiles are placeholders. Upload approved portraits and replace the draft biographies here." />
             <div className="admin-record-list">
               {data.leaders.map((leader, index) => <section className="admin-record leader-record" key={leader.id}>
-                <div className="admin-avatar">{leader.imageKey ? <img src={leader.imageKey} alt="" /> : leader.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</div>
+                <div className="admin-avatar">{leader.imageKey ? <Image src={leader.imageKey} alt="" fill sizes="56px" /> : leader.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</div>
                 <div className="record-fields">
                   <div className="field-pair"><label><span>Name</span><Input value={leader.name} onChange={(event) => { const leaders = [...data.leaders]; leaders[index] = { ...leader, name: event.target.value }; setData({ ...data, leaders }); }} /></label><label><span>Role</span><Input value={leader.role} onChange={(event) => { const leaders = [...data.leaders]; leaders[index] = { ...leader, role: event.target.value }; setData({ ...data, leaders }); }} /></label></div>
                   <label><span>Biography</span><Textarea rows={5} value={leader.bio} onChange={(event) => { const leaders = [...data.leaders]; leaders[index] = { ...leader, bio: event.target.value }; setData({ ...data, leaders }); }} /></label>
@@ -174,7 +182,7 @@ export function AdminDashboard({ userEmail }: { userEmail: string }) {
 
           <TabsContent value="careers">
             <AdminHeading eyebrow="Recruitment" title="Career openings" body="Publish, revise and remove roles shown on the public Careers page." />
-            <Button variant="outline" onClick={() => setData({ ...data, jobs: [...data.jobs, { id: crypto.randomUUID(), title: "New position", location: "North Paravur, Kerala", type: "Full time", description: "Add the role description, responsibilities and requirements.", published: 1, created_at: Date.now() }] })}><Plus />Add opening</Button>
+            <Button variant="outline" onClick={() => setData({ ...data, jobs: [...data.jobs, { id: crypto.randomUUID(), title: "New position", location: "North Paravur, Kerala", type: "Full time", description: "Add the role description, responsibilities and requirements.", published: true, createdAt: Date.now() }] })}><Plus />Add opening</Button>
             <div className="admin-record-list compact-records">
               {data.jobs.map((job, index) => <section className="admin-record" key={job.id}><div className="record-fields"><div className="field-pair"><label><span>Job title</span><Input value={job.title} onChange={(event) => { const jobs = [...data.jobs]; jobs[index] = { ...job, title: event.target.value }; setData({ ...data, jobs }); }} /></label><label><span>Location</span><Input value={job.location} onChange={(event) => { const jobs = [...data.jobs]; jobs[index] = { ...job, location: event.target.value }; setData({ ...data, jobs }); }} /></label></div><label><span>Description</span><Textarea rows={4} value={job.description} onChange={(event) => { const jobs = [...data.jobs]; jobs[index] = { ...job, description: event.target.value }; setData({ ...data, jobs }); }} /></label></div></section>)}
             </div>
@@ -184,7 +192,7 @@ export function AdminDashboard({ userEmail }: { userEmail: string }) {
           <TabsContent value="inquiries">
             <AdminHeading eyebrow="Inbox" title="Website enquiries" body="Review the latest enquiries and track follow-up status." />
             <div className="inquiry-list">
-              {data.inquiries.map((inquiry) => <article key={inquiry.id}><div className="inquiry-meta"><span>{inquiry.subject}</span><time>{new Date(inquiry.created_at).toLocaleDateString()}</time></div><h3>{inquiry.name}</h3><a href={`mailto:${inquiry.email}`}>{inquiry.email}</a>{inquiry.phone && <a href={`tel:${inquiry.phone}`}>{inquiry.phone}</a>}<p>{inquiry.message}</p><select value={inquiry.status} onChange={(event) => updateInquiry(inquiry.id, event.target.value)}><option value="new">New</option><option value="in-progress">In progress</option><option value="closed">Closed</option></select></article>)}
+              {data.inquiries.map((inquiry) => <article key={inquiry.id}><div className="inquiry-meta"><span>{inquiry.subject}</span><time>{new Date(inquiry.createdAt).toLocaleDateString()}</time></div><h3>{inquiry.name}</h3><a href={`mailto:${inquiry.email}`}>{inquiry.email}</a>{inquiry.phone && <a href={`tel:${inquiry.phone}`}>{inquiry.phone}</a>}<p>{inquiry.message}</p><select value={inquiry.status} onChange={(event) => updateInquiry(inquiry.id, event.target.value)}><option value="new">New</option><option value="in-progress">In progress</option><option value="closed">Closed</option></select></article>)}
               {!data.inquiries.length && <p className="admin-empty">No enquiries yet.</p>}
             </div>
           </TabsContent>

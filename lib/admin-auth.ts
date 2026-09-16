@@ -1,18 +1,36 @@
-import { env } from "cloudflare:workers";
-import { getChatGPTUser, type ChatGPTUser } from "@/app/chatgpt-auth";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
-export function isAdminUser(user: ChatGPTUser): boolean {
-  if (process.env.NODE_ENV !== "production" && user.email === "seedy@sites.test") {
-    return true;
-  }
-  const allowlist = String(env.ADMIN_EMAILS ?? "")
+export type AdminIdentity = {
+  userId: string;
+  displayName: string;
+  email: string;
+  authorized: boolean;
+};
+
+function adminEmails() {
+  return String(process.env.ADMIN_EMAILS ?? "")
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
-  return allowlist.includes(user.email.toLowerCase());
 }
 
-export async function getAuthorizedAdmin(): Promise<ChatGPTUser | null> {
-  const user = await getChatGPTUser();
-  return user && isAdminUser(user) ? user : null;
+export async function getAdminIdentity(): Promise<AdminIdentity | null> {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const user = await currentUser();
+  const email = user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses[0]?.emailAddress;
+  if (!user || !email) return null;
+
+  return {
+    userId,
+    displayName: user.fullName ?? email,
+    email,
+    authorized: adminEmails().includes(email.toLowerCase()),
+  };
+}
+
+export async function getAuthorizedAdmin(): Promise<AdminIdentity | null> {
+  const user = await getAdminIdentity();
+  return user?.authorized ? user : null;
 }

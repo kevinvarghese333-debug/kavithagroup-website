@@ -4,6 +4,8 @@ import { PageHero } from "@/components/page-hero";
 import { SiteFooter } from "@/components/site-footer";
 import { getSiteContent } from "@/lib/site-content";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Contact | Kavitha Group" };
 
 export default async function ContactPage() {

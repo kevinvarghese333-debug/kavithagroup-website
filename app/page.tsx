@@ -6,6 +6,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { getBusinesses, getLeaders, getSiteContent } from "@/lib/site-content";
 
+export const dynamic = "force-dynamic";
+
 const milestones = [
   ["The beginning", "From age 15, K. Varghese explored multiple small ventures from a single room at home before building a silver trade serving retailers and wholesalers."],
   ["1998", "Kavitha Jewellery opened in Cherai, giving the emerging enterprise a name and a permanent home in the community."],

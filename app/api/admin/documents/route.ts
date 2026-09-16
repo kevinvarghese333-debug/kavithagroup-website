@@ -1,5 +1,8 @@
-import { env } from "cloudflare:workers";
+import { del } from "@vercel/blob";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getDb } from "@/db";
+import { documents } from "@/db/schema";
 import { getAuthorizedAdmin } from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
@@ -8,9 +11,19 @@ export async function POST(request: Request) {
   if (!body?.title || !body.fileKey || !body.fileName) return NextResponse.json({ error: "Missing document details" }, { status: 400 });
   const id = crypto.randomUUID();
   const now = Date.now();
-  await env.DB.prepare(
-    "INSERT INTO documents (id, title, category, year, file_key, file_name, mime_type, size, published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-  ).bind(id, String(body.title).trim().slice(0, 180), String(body.category || "policy").slice(0, 40), Number(body.year || new Date().getFullYear()), String(body.fileKey), String(body.fileName), String(body.mimeType || "application/pdf"), Number(body.size || 0), body.published === false ? 0 : 1, now, now).run();
+  await getDb().insert(documents).values({
+    id,
+    title: String(body.title).trim().slice(0, 180),
+    category: String(body.category || "policy").slice(0, 40),
+    year: Number(body.year || new Date().getFullYear()),
+    fileKey: String(body.fileKey).slice(0, 500),
+    fileName: String(body.fileName).slice(0, 220),
+    mimeType: String(body.mimeType || "application/pdf").slice(0, 120),
+    size: Number(body.size || 0),
+    published: body.published !== false,
+    createdAt: now,
+    updatedAt: now,
+  });
   return NextResponse.json({ id }, { status: 201 });
 }
 
@@ -18,8 +31,9 @@ export async function DELETE(request: Request) {
   if (!(await getAuthorizedAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  const row = await env.DB.prepare("SELECT file_key FROM documents WHERE id = ? LIMIT 1").bind(id).first<{ file_key: string }>();
-  if (row?.file_key) await env.FILES.delete(row.file_key);
-  await env.DB.prepare("DELETE FROM documents WHERE id = ?").bind(id).run();
+  const db = getDb();
+  const [row] = await db.select({ fileKey: documents.fileKey }).from(documents).where(eq(documents.id, id)).limit(1);
+  if (row?.fileKey) await del(row.fileKey);
+  await db.delete(documents).where(eq(documents.id, id));
   return NextResponse.json({ status: "deleted" });
 }

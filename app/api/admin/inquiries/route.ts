@@ -1,5 +1,7 @@
-import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getDb } from "@/db";
+import { inquiries } from "@/db/schema";
 import { getAuthorizedAdmin } from "@/lib/admin-auth";
 
 export async function PATCH(request: Request) {
@@ -7,6 +9,6 @@ export async function PATCH(request: Request) {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const status = String(body?.status || "");
   if (!body?.id || !["new", "in-progress", "closed"].includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-  await env.DB.prepare("UPDATE inquiries SET status = ? WHERE id = ?").bind(status, String(body.id)).run();
+  await getDb().update(inquiries).set({ status }).where(eq(inquiries.id, String(body.id)));
   return NextResponse.json({ status: "saved" });
 }
