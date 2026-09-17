@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDownRight, Menu } from "lucide-react";
+import { ArrowDownRight } from "lucide-react";
+import { MobileNavigation } from "@/components/mobile-navigation";
 
 export function BrandLockup({ dark = false }: { dark?: boolean }) {
   return (
@@ -25,17 +26,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
       <Link href="/contact" className="nav-cta">
         Contact <ArrowDownRight size={15} aria-hidden="true" />
       </Link>
-      <details className="mobile-menu">
-        <summary aria-label="Open navigation"><Menu size={20} /></summary>
-        <nav aria-label="Mobile navigation">
-          <Link href="/about">Our Group</Link>
-          <Link href="/businesses">Businesses</Link>
-          <Link href="/investors">Investor Corner</Link>
-          <Link href="/customers">Customer Corner</Link>
-          <Link href="/careers">Careers</Link>
-          <Link href="/contact">Contact</Link>
-        </nav>
-      </details>
+      <MobileNavigation solid={!overlay} />
     </header>
   );
 }
